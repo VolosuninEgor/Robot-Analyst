@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>квирелл</title>
+    <link rel="stylesheet" href="static/css/style1.css">
+</head> 
+<body>
+<div class="container top">
+    <!-- Êîíòåéíåð äëÿ âèäåîïîòîêà (ëåâàÿ ÷àñòü) -->
+  <div class="side-container left">
+    <div class="test">
+        <div class="sensor top-sensor"><span id="distance1">---</span></div>
+        <div class="sensor right-sensor"><span id="distance2">---</span></div>
+        <div class="sensor bottom-sensor"><span id="distance3">---</span></div>
+        <div class="sensor left-sensor"><span id="distance4">---</span></div>
+        <div class="platform-container">
+            <img src="https://cdn.glitch.global/7e08271c-b6c5-404c-8f6b-ec2d8d32362b/2025_01_28_04l_Kleki.png?v=1738021598749" class="platform"> 
+        </div>
+    </div>
+        
+  </div>
+  <div class="center-container">
+    <div class="video-container">
+        <img src="/video_feed" alt="Видеопоток" class="video-feed">
+    </div>    
+  </div>
+  <div class="side-container right">
+    <img src="https://cdn.glitch.global/7e08271c-b6c5-404c-8f6b-ec2d8d32362b/ALL.png?v=1738036171498" class="keys">
+  </div>
+</div>
+<div class="container bottom">
+    <div class="data-container">
+        <div class="data-item">
+            <span class="data-label">Влажность:</span>
+            <span class="data-value" id="humidity">---</span> %
+        </div>
+        <div class="data-item">
+            <span class="data-label">Температура:</span>
+            <span class="data-value" id="temperature">---</span>
+        </div>
+        <div class="data-item">
+            <span class="data-label">Освещенность:</span>
+            <span class="data-value" id="light">---</span> ëþêñ
+        </div>
+        <div class="data-item">
+            <span class="data-label">Безопасность попки:</span>
+            <span class="data-value" id="motion">---</span>
+        </div>
+    </div>
+</div>
+      <script>
+        async function fetchData() {
+            try {
+                const response = await fetch('/data');
+                const data = await response.json();
+                document.getElementById('distance1').textContent = data.distance1 || "---";
+                document.getElementById('distance2').textContent = data.distance2 || "---";
+                document.getElementById('distance3').textContent = data.distance3 || "---";
+                document.getElementById('distance4').textContent = data.distance4 || "---";
+                document.getElementById('humidity').textContent = data.humidity || "---";
+                document.getElementById('temperature').textContent = data.temperature || "---";
+                document.getElementById('light').textContent = data.light || "---";
+                document.getElementById('motion').textContent = data.motion || "---";
+            } catch (error) {
+                console.error("Ошибка при получении данных:", error);
+            }
+        }
+        setInterval(fetchData, 1000);
+
+
+        const roboArmKeys = ["y", "u", "h", "j", "b", "n"]
+        // Îòïðàâêà êîìàíäû íà ñåðâåð
+        function sendCommand(command) {
+            fetch('/control', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `command=${command}`
+            }).catch(err => console.error("Îøèáêà îòïðàâêè êîìàíäû:", err));
+        }
+        // Îáðàáîòêà íàæàòèÿ êëàâèø
+        document.addEventListener('keydown', (event) => {
+            if (!event.repeat) { // Èãíîðèðîâàòü ïîâòîðíûå ñîáûòèÿ
+                 sendCommand(event.key);
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            sendCommand('m');
+        });
+
+        // Îáðàáîòêà îòïóñêàíèÿ êëàâèø
+        document.addEventListener('keyup', (event) => {
+            switch (event.key) {
+                case 'w':
+                case 'a':
+                case 's':
+                case 'd':
+                case 'e':
+                case 'q':
+                case 'y':
+                case 'u':
+                case 'h':
+                case 'j':
+                case 'b':
+                case 'n':                
+                case 'l':
+                    sendCommand('m'); // Îñòàíàâëèâàåì ïëàòôîðìó
+                    break;
+            }
+        });
+    </script>
+  
+</body>
+</html>
