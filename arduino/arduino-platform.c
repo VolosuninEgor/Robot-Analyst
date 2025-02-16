@@ -10,10 +10,10 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
 #define MOTOR1_A 2
 #define MOTOR1_B 3
-#define MOTOR2_A 5
-#define MOTOR2_B 4
-#define MOTOR3_A 7
-#define MOTOR3_B 6
+#define MOTOR3_A 4
+#define MOTOR3_B 5
+#define MOTOR2_A 7
+#define MOTOR2_B 6
 #define MOTOR4_A 9
 #define MOTOR4_B 8
 
@@ -82,10 +82,10 @@ void loop() {
         moveMotors(-255, 255, 255, -255);
         break;
       case 'e': // Поворот вправо
-        moveMotors(-255, 255, -255, 255);
+        moveMotors(-255, -255, 255, 255);
         break;
       case 'q': // Поворот влево
-        moveMotors(255, -255, 255, -255);
+        moveMotors(255, 255, -255, -255);
         break;
       case 'l':
         light = !light;
@@ -142,7 +142,7 @@ void handleArmControl(char command) {
 }
 
 void updateServos() {
-  if (y && serv1 < 40) {
+  if (y && serv1 < 74) {
     serv1 += 0.5;
     setServoAngle(0, serv1);
     Serial.print("1 (y): ");
@@ -156,7 +156,7 @@ void updateServos() {
     Serial.println(serv1);
   }
 
-  if (h && serv2 < 114) {
+  if (h && serv2 < 150) {
     serv2 += 0.5;
     setServoAngle(1, serv2);
     Serial.print("2 (h): ");
@@ -170,14 +170,14 @@ void updateServos() {
     Serial.println(serv2);
   }
 
-  if (b && serv3 < 20) {
+  if (b && serv3 < 75) {
     serv3 += 0.5;
     setServoAngle(2, serv3);
     Serial.print("3 (b): ");
     Serial.println(serv3);
   }
 
-  if (n && serv3 > -20) {
+  if (n && serv3 > -21) {
     serv3 -= 0.5;
     setServoAngle(2, serv3);
     Serial.print("3 (n): ");

@@ -1,11 +1,11 @@
 from flask import Flask, render_template, request, Response, jsonify
+import numpy as np
 from picamera2 import Picamera2
 import cv2
 import serial
 import threading
 import time
 import queue
-import psutil
 
 # Настраиваем Flask
 app = Flask(__name__)
@@ -24,7 +24,6 @@ data = {
     "humidity": 0,
     "temperature": 0,
     "light": "0",
-    "motion": "Попка в безопасности"
 }
 
 # Читаем данные с Arduino
@@ -35,8 +34,8 @@ def read_from_arduino():
             try:
                 line = arduino_sensor.readline().decode('utf-8').strip()
                 parsed_data = line.split(',')
-                if len(parsed_data) == 8:
-                    distance1, distance2, distance3, distance4, humidity, temperature, light, motion = parsed_data
+                if len(parsed_data) == 7:
+                    distance1, distance2, distance3, distance4, humidity, temperature, light = parsed_data
                     new_data = {
                         "distance1": float(distance1),
                         "distance2": float(distance2),
@@ -45,7 +44,6 @@ def read_from_arduino():
                         "humidity": float(humidity),
                         "temperature": float(temperature),
                         "light": str(float(light)) if float(light) > 5 else "Темно, хоть глаз выколи!",
-                        "motion": "О нет, кто-то позарился на мои сочные булочки!" if int(motion) == 1 else "Пронесло, попка в безопасности"
                     }
                     data_queue.put(new_data)
             except Exception as e:
@@ -56,7 +54,6 @@ def read_from_arduino():
 picam2 = Picamera2()
 video_config = picam2.create_video_configuration(main={"size": (640, 480)})
 picam2.configure(video_config)
-picam2.set_controls({"FrameRate": 10})  # Ограничиваем FPS (ставь 10-15, если лаги)
 picam2.start()
 
 
@@ -70,9 +67,10 @@ def update_frame():
     while True:
         with frame_lock:
             frame = picam2.capture_array()
+            frame = np.rot90(frame, k=2)
             _, buffer = cv2.imencode('.jpg', frame)
             current_frame = buffer.tobytes()
-        time.sleep(0.1)  # Ограничиваем FPS
+        time.sleep(0.01)  # Ограничиваем FPS
 
 # Генерация кадров
 def generate_frames():
@@ -81,7 +79,7 @@ def generate_frames():
             if current_frame:
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + current_frame + b'\r\n')
-        time.sleep(0.1)
+        time.sleep(0.01)
 
 # Запускаем потоки
 threading.Thread(target=read_from_arduino, daemon=True).start()
